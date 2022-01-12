@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
+   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+ 
+<style>
+  .branding-below {
+    bottom: 56px;
+    top: 0;
+  }  
+  
+  #cal-select {
+  text-align:left;
+  width:500px;
+  height:100px;
+  }
+
+  .date{
+  width:140px;
+  }
+  .cell {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+
+  #DocInfo, #FormInfo {
+    padding-left: 50px;
+    padding-right: 50px;
+  }
+
+  #clear, #update {
+    margin-left:10px;
+    margin-right:10px;
+  }
+  
+  #error{
+  color:red;
+  }
+  
+  #loader {
+    margin: 200px auto 10px auto;
+    border: 5px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 5px solid #000000;
+    width: 75px;
+    height: 75px;
+    -webkit-animation: spin 1s linear infinite; /* Safari */
+    animation: spin 1s linear infinite;
+  }
+
+  #loader-wrapper {
+    text-align: center;
+    font-size:14px;
+    font-weight: 200;
+    display:none;
+  }
+  
+  .tableRow {
+  height:30px;
+
+  }
+  
+  .tableCell {
+  padding:0px 2px 0px 2px;
+  margin:0px 0px 0px 0px;  
+
+  width:150px;
+  padding-left:2px;
+  padding-right:2px;
+  }
+
+  /* Safari */
+  @-webkit-keyframes spin {
+    0% { -webkit-transform: rotate(0deg); }
+    100% { -webkit-transform: rotate(360deg); }
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+</style>
+  </head>
+  <body onload="google.script.run.withSuccessHandler(showDocProps).getUserCalendars();">
+  <div id="loader-wrapper">
+    <div id="loader"></div>
+    <span id="loader-message">Please hold on...your calendar data is being extracted.  This can take a while.</span>
+  </div>
+  <div id ="container-wrapper" class="modalDialog branding-below">
+    <div id="DocInfo">
+    <h4>Please wait while document properties are checked....</h4>
+    </div>  
+    <div id="FormInfo"></div>
+    <span id="error"></span>
+  </div>
+  
+<script>  
+function showSuccess(message){
+  if(!message){
+   google.script.host.close();
+
+//  var successHtml = "<h4>Data Extraction Successful!</h4><p>Your data for selected calendars has been loaded into this sheet. Happy Analyzing!</p>";
+//  successHtml = successHtml + "<input class='button' type='button' value='Close' onclick='google.script.host.close();' />";
+//  document.getElementById('DocInfo').innerHTML = successHtml;
+//  document.getElementById('FormInfo').innerHTML = "";
+//  document.getElementById('error').innerHTML = "";
+  } else{
+  showValidation(message);
+  }
+  showPage();
+  }  
+  
+  function showValidation(message){
+     document.getElementById("error").innerHTML = message; 
+  }
+
+  function processInputs(start,end,type){
+   var start = Date.parse(new Date(start));
+   var end = Date.parse(new Date(end)); 
+   var calIds = $('#cal-select').val();
+   var selectedColumns = $("input:checkbox[name=columns]:checked").map(function(){return $(this).val()}).get();
+   var message = "";
+   
+   if(calIds.length == 0 || (!start || !end) || start>end || selectedColumns.length == 0){
+    if(calIds.length == 0){
+      var message = "<br />Please select a calendar to extract.";      
+   }
+    if(selectedColumns.length == 0){
+      var message = "<br />You have to select at least one column to display in the report.";      
+   }   
+   if(!start || !end){
+      var message = message + "<br />Both a start and end date are required.";      
+   } else if(start>end){
+   var message = message + "<br />End Date cannot be before start date.";
+   }   
+   showValidation(message);     
+   } else {
+      hidePage(); 
+      google.script.run.withSuccessHandler(showSuccess).getCalData(calIds,start,end,selectedColumns,type);
+      }
+  }
+  
+  function checkAllColumns(isChecked){
+  if(isChecked){
+  $("input:checkbox[name=columns]").prop('checked',true);
+  } 
+  
+  if(!isChecked){
+  $("input:checkbox[name=columns]").prop('checked',false);
+  } 
+  
+  }
+  
+  function generateColumnSelectors(type){
+   var calAttr = [
+  ["calName","Calendar Name",250],
+  ["eventName","Event Name",300],
+  ["eventStart","Event Start",100],
+  ["eventEnd","Event End",100],
+  ["location","Event Location",400],
+  ["eventColor","Event Color",100], 
+  ["creator","Event Creator",300],
+  ["participant","Event Invitee(s)",300],
+  ["description","Event Description",500],
+  ["hoursDuration","Length (Hours)",100],
+  ["dateCreated","Date Created",100],
+  ["lastUpdated","Last Updated",100],
+  ["visibility","Visibility",100],
+  ["numbParticipants","Total Invitees",100],  
+  ["isRecurringEvent","Is Recurring Event",100]
+  ];
+  if(type == "participant"){calAttr.splice(13,1);} //Total number of Invitees is not relevant for the participant level report
+  var html = "<hr /><h3>What calendar data do you want to extract?</h3><p>Select the calendar event attributes that you want to appear in your report.</p>";
+  html += "<input type='checkbox' id='checkAll' name='checkAll' onclick='checkAllColumns(this.checked);' ><label for='checkAll'>Select All</label>";
+  html += "<table>";
+
+     for(var i=0;i<calAttr.length;i++){
+       if(i % 4 == 0 || i+1 % 4 == 0  || i == calAttr.length){
+       if(i % 4 == 0){
+         html += "<tr class='tableRow'><td class='tableCell'><input type='checkbox' id='" + calAttr[i][0] + "' name='columns' value='" + calAttr[i][0] + "' ><label for='" + calAttr[i][0] + "'>" + calAttr[i][1] + "</label></td>";      
+       }
+       if(i+1 % 4 == 0  || i == calAttr.length){
+        html += "<td class='tableCell'><input type='checkbox' id='" + calAttr[i][0] + "' name='columns' value='" + calAttr[i][0] + "'><label for='" + calAttr[i][0] + "'>" + calAttr[i][1] + "</label></td></tr>";
+       }
+       } else{
+        html += "<td class='tableCell'><input type='checkbox' id='" + calAttr[i][0] + "' name='columns' value='" + calAttr[i][0] + "'><label for='" + calAttr[i][0] + "'>" + calAttr[i][1] + "</label></td>";       
+       }
+     }
+  html += "</table><br />";
+   return html;
+  }
+  
+  function showButtons(type){
+  var eventButton = "<input id='submitEvent' class='action' type='submit' value='Run Event Report' onclick='processInputs(document.getElementById(\"start\").value,document.getElementById(\"end\").value,\"event\");' />"; 
+  var participantButton = "<input id='submitParticipant' class='action' type='submit' value='Run Participant Report' onclick='processInputs(document.getElementById(\"start\").value,document.getElementById(\"end\").value,\"participant\");' />"; 
+  var columnSelectors = generateColumnSelectors(type);
+  if(type == "event"){
+  document.getElementById("FormInfo").innerHTML = columnSelectors + eventButton;
+  }
+  if(type == "participant"){
+  document.getElementById("FormInfo").innerHTML = columnSelectors + participantButton;
+  }  
+  }
+  
+  function showDocProps(calendarList){
+      var calSelection = "<p><select name='calendars' id='cal-select' multiple='multiple'>";
+      for(var i=0;i<calendarList.length;i++){
+        var calSelection = calSelection + "<option value='" + calendarList[i][0] + "'>" + calendarList[i][1] + "</option>";
+      }
+      var calSelection = calSelection + "</select></p>";
+      var dateInputs = "<p><label for='startDate'>Extract data between the following dates:  </label><input class='date' type='date' id='start' name='trip-start'>  and  ";
+      dateInputs = dateInputs + "<input class='date' type='date' id='end' name='trip-end'>";
+      var typeSelector = "<hr /><h3>How granular do you want your calendar data?</h3><p>Select the type of report you want to run. Event reports will return one row per calendar event.  Invitee reports will return one row per invitee per event.</p>";
+      typeSelector += "<input type='radio' id='eventReportType' name='reportType' value='event' onclick='showButtons(\"event\");'><label for='eventReportType'>Event Report</label>  ";
+      typeSelector += "<input type='radio' id='participantReportType' name='reportType' value='participant'  onclick='showButtons(\"participant\");'><label for='participantReportType'>Invitee Report</label>";
+      var advisoryMessage = calSelection + dateInputs + typeSelector + "<p></p>"; 
+      var html ="<h3>What Calendar Data do you want to Analyze?</h3><p>Choose from the following list of your calendars.  Select multiple calendars using the CTRL key.</p>";
+      html = html + advisoryMessage;
+      document.getElementById("DocInfo").innerHTML = html;
+  }
+  
+function showPage() {
+  document.getElementById("loader-wrapper").style.display = "none";
+  document.getElementById("container-wrapper").style.display = "block";
+}   
+
+function hidePage(){
+  document.getElementById("loader-wrapper").style.display = "block";
+  document.getElementById("container-wrapper").style.display = "none";
+}  
+  </script> 
+  </body>
+</html>
