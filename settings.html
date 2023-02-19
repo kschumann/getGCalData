@@ -153,14 +153,14 @@ function validate(start,end,calIds,selectedColumns){
 }
 
 function processInputs(start,end,type){
-  var start = Date.parse(new Date(start));
-  var end = Date.parse(new Date(end)); 
-  var calIds = $('#cal-select').val();
-  var keyWordInput =  document.getElementById('keyWord').value;
-  var selectedColumns = $("input:checkbox[name=columns]:checked").map(function(){return $(this).val()}).get();  
+  start = Date.parse(new Date(start));
+  end = Date.parse(new Date(end)); 
+  const calIds = $('#cal-select').val();
+  const keyWordInput =  document.getElementById('keyWord').value;
+  const selectedColumns = $("input:checkbox[name=columns]:checked").map(function(){return $(this).val()}).get();  
   console.log(calIds);
   if(calIds.length == 0 || (!start || !end) || start>end || selectedColumns.length == 0){
-    var message = validate(start,end,calIds,selectedColumns);
+    const message = validate(start,end,calIds,selectedColumns);
     showValidation(message);      
   } else {
     hidePage(); 
@@ -178,7 +178,7 @@ function checkAllColumns(isChecked){
 }
 
 function generateColumnSelectors(type){
-  var calAttr = [
+  const calAttr = [
     ["calName","Calendar Name",250],
     ["eventName","Event Name",300],
     ["eventStart","Event Start",100],
@@ -201,7 +201,7 @@ function generateColumnSelectors(type){
   html += "<input type='checkbox' id='checkAll' name='checkAll' onclick='checkAllColumns(this.checked);' ><label for='checkAll'>Select All</label>";
   html += "<table>";
 
-  for(var i=0;i<calAttr.length;i++){
+  for(let i=0;i<calAttr.length;i++){
     if(i % 4 == 0 || i+1 % 4 == 0  || i == calAttr.length){
     if(i % 4 == 0){
     html += "<tr class='tableRow'><td class='tableCell'><input type='checkbox' id='" + calAttr[i][0] + "' name='columns' value='" + calAttr[i][0] + "' ><label for='" + calAttr[i][0] + "'>" + calAttr[i][1] + "</label></td>";      
@@ -232,23 +232,23 @@ function generateColumnSelectors(type){
   
   function saveNewPreset(currPresets){
     //get values from the form
-    var name = document.getElementById("newPreset").value;
-    var selectedCalendars = $('#cal-select').val(); 
-    var beginDate = document.getElementById("start").value;
-    var endDate = document.getElementById("end").value;
-    var keyWordInput = document.getElementById("keyWord").value;
+    const name = document.getElementById("newPreset").value;
+    const selectedCalendars = $('#cal-select').val(); 
+    const beginDate = document.getElementById("start").value;
+    const endDate = document.getElementById("end").value;
+    const keyWordInput = document.getElementById("keyWord").value;
     if(document.getElementById("eventReportType").checked){
     var eventType = "event";
     } else if(document.getElementById("participantReportType").checked){
       var eventType = "participant";
     }
-    var attributeIds = $("input:checkbox[name=columns]:checked").map(function(){return $(this).val()}).get();
-    var currPresetsObj = JSON.parse(currPresets);
-      var presetNames=[];
-      for(var i=0;i<currPresetsObj["presets"].length;i++){
+    const attributeIds = $("input:checkbox[name=columns]:checked").map(function(){return $(this).val()}).get();
+    const currPresetsObj = JSON.parse(currPresets);
+    var presetNames=[];
+      for(let i=0;i<currPresetsObj["presets"].length;i++){
         presetNames.push(currPresetsObj["presets"][i]["name"]);
       }
-    var errorMessage = validate(beginDate,endDate,selectedCalendars,attributeIds);
+    const errorMessage = validate(beginDate,endDate,selectedCalendars,attributeIds);
     var message = "";
     if(errorMessage || name.length == 0 || presetNames.indexOf(name)>=0){
       if(errorMessage){
@@ -292,8 +292,12 @@ function generateColumnSelectors(type){
       document.getElementById("saveWrapper").style.display = "none";
       document.getElementById("error").style.display = "none";
       document.getElementById("presetSaveMsg").style.display = "inline";
-      google.script.run.updatePresets(presets);
+      google.script.run.withSuccessHandler(updatePresetsDropdown).updatePresets(presets);
     }
+  }
+
+  function logPageError(data){
+    google.script.run.logPageError(data);
   }
   
   function showNewPreset(){//Show the text box and button to save new preset
@@ -302,43 +306,43 @@ function generateColumnSelectors(type){
   
 
   function showDocProps(data){  //Builds the page based on calendar and preset data
-  if(!data[0]){
-    var presetOptions = "";
-    var presetLabel = "<label for='presets'> No presets available. Create a new preset after setting report values below.</label>";
-  } else{
-    var presetLabel = "<label for='presets'> Use Preset Report</label>";
-    var presets = JSON.parse(data[0]);
-    var presetsList = presets["presets"];
-    var presetOptions = "";
-    for(var j=0;j<presetsList.length;j++){
-      presetOptions += "<option value='" + j +"' >" + presetsList[j]["name"] + "</option>";
+    if(!data[0]){
+      var presetOptions = "";
+      var presetLabel = "<label for='presets'> No presets available. Create a new preset after setting report values below.</label>";
+    } else{
+      var presetLabel = "<label for='presets'> Use Preset Report</label>";
+      var presets = JSON.parse(data[0]);
+      var presetsList = presets["presets"];
+      var presetOptions = "";
+      for(let j=0;j<presetsList.length;j++){
+        presetOptions += "<option value='" + j +"' >" + presetsList[j]["name"] + "</option>";
+        }
       }
-    }
-    var calendarList = data[1];
-    var calSelection = "<p><select name='calendars' id='cal-select' multiple='multiple'>";
-    for(var i=0;i<calendarList.length;i++){
-      var calSelection = calSelection + "<option value='" + calendarList[i][0] + "'>" + calendarList[i][1] + "</option>";
-    }
-    var calSelection = calSelection + "</select></p>";
-    var dateInputs = "<p><label for='startDate'>Extract data between the following dates:  </label><input class='date' type='date' id='start' name='trip-start'>  and  ";
-    dateInputs = dateInputs + "<input class='date' type='date' id='end' name='trip-end'>";
-    var keyWordInput = "<p><label for='keyWord'>Download only events where the Event Title includes the following word or phrase (optional): </label><input id='keyWord' placeholder='Case Sensitive Phrase' name='keyWord'></p>";
-    var typeSelector = "<hr /><h3>How granular do you want your calendar data?</h3><p>Select the type of report you want to run. Event reports will return one row per calendar event.  Invitee reports will return one row per invitee per event.</p>";
-    typeSelector += "<input type='radio' id='eventReportType' name='reportType' value='event' onclick='showButtons(\"event\");'><label for='eventReportType'>Event Report</label>  ";
-    typeSelector += "<input type='radio' id='participantReportType' name='reportType' value='participant'  onclick='showButtons(\"participant\");'><label for='participantReportType'>Invitee Report</label>";
-    var advisoryMessage = calSelection + dateInputs + keyWordInput + typeSelector + "<p></p>"; 
-    
-    var presetSelector = presetLabel + "<select name='presets' id='presets' onchange='google.script.run.withSuccessHandler(applyPresets).getPresets();'><option value='none'>--Select Preset--</option>";
-    presetSelector += presetOptions + "</select>";
-    presetSelector += "<input type='button' id='deletePreset' value='Delete Selected Preset' onclick='google.script.run.withSuccessHandler(deletePreset).getPresets();'>" 
-    var html = presetSelector + "<h3>What calendars do you want to analyze?</h3><p>Choose from the following list of your calendars.  Select multiple calendars using the CTRL key.</p>";
-    html = html + advisoryMessage;
-    document.getElementById("DocInfo").innerHTML = html;
+      const calendarList = data[1];
+      var calSelection = "<p><select name='calendars' id='cal-select' multiple='multiple'>";
+      for(let i=0;i<calendarList.length;i++){
+        calSelection = calSelection + "<option value='" + calendarList[i][0] + "'>" + calendarList[i][1] + "</option>";
+      }
+      calSelection = calSelection + "</select></p>";
+      let dateInputs = "<p><label for='startDate'>Extract data between the following dates:  </label><input class='date' type='date' id='start' name='trip-start'>  and  ";
+      dateInputs = dateInputs + "<input class='date' type='date' id='end' name='trip-end'>";
+      let keyWordInput = "<p><label for='keyWord'>Download only events where the Event Title includes the following word or phrase (optional): </label><input id='keyWord' placeholder='Case Sensitive Phrase' name='keyWord'></p>";
+      let typeSelector = "<hr /><h3>How granular do you want your calendar data?</h3><p>Select the type of report you want to run. Event reports will return one row per calendar event.  Invitee reports will return one row per invitee per event.</p>";
+      typeSelector += "<input type='radio' id='eventReportType' name='reportType' value='event' onclick='showButtons(\"event\");'><label for='eventReportType'>Event Report</label>  ";
+      typeSelector += "<input type='radio' id='participantReportType' name='reportType' value='participant'  onclick='showButtons(\"participant\");'><label for='participantReportType'>Invitee Report</label>";
+      let advisoryMessage = calSelection + dateInputs + keyWordInput + typeSelector + "<p></p>"; 
+      
+      let presetSelector = presetLabel + "<select name='presets' id='presets' onchange='google.script.run.withSuccessHandler(applyPresets).getPresets();'><option value='none'>--Select Preset--</option>";
+      presetSelector += presetOptions + "</select>";
+      presetSelector += "<input type='button' id='deletePreset' value='Delete Selected Preset' onclick='google.script.run.withSuccessHandler(deletePreset).getPresets();'>" 
+      let html = presetSelector + "<h3>What calendars do you want to analyze?</h3><p>Choose from the following list of your calendars.  Select multiple calendars using the CTRL key.</p>";
+      html = html + advisoryMessage;
+      document.getElementById("DocInfo").innerHTML = html;
   }
   
 function deletePreset(presets){//Deletes the preset that has been selected in the dropdown
-  var presetId = parseInt(document.getElementById("presets").value);
-  var presetsObj = JSON.parse(presets);
+  const presetId = parseInt(document.getElementById("presets").value);
+  const presetsObj = JSON.parse(presets);
   presetsObj["presets"].splice(presetId,1);
   presets = JSON.stringify(presetsObj);
   $("#cal-select option:selected").prop("selected", false);
@@ -352,12 +356,13 @@ function deletePreset(presets){//Deletes the preset that has been selected in th
   document.getElementById("deletePreset").style.display = "none";
   google.script.run.withSuccessHandler(updatePresetsDropdown).updatePresets(presets);
 }  
-  
+
+
 function updatePresetsDropdown(presets){//refreshes presets dropdown after one of them has been deleted
-  var presetsObj = JSON.parse(presets);
-  var presetsList = presetsObj["presets"];
+  const presetsObj = JSON.parse(presets);
+  const presetsList = presetsObj["presets"];
   var presetOptions = "<option value='none'>--Select Preset--</option>";
-  for(var j=0;j<presetsList.length;j++){
+  for(let j=0;j<presetsList.length;j++){
     presetOptions += "<option value='" + j +"' >" + presetsList[j]["name"] + "</option>";
   }
   document.getElementById("presets").innerHTML = presetOptions;
@@ -365,12 +370,12 @@ function updatePresetsDropdown(presets){//refreshes presets dropdown after one o
 
 function applyPresets(presets){//Insert preset report settings into settings page.
   //get the index of the preset from dropdown
-  var presetId = document.getElementById("presets").value;
+  const presetId = document.getElementById("presets").value;
 
   if(presetId != "none"){//only apply if something is selected
   //parse Json and get presets
-  var presetsObj = JSON.parse(presets);
-  var selectedPresets = presetsObj["presets"][presetId];
+  const presetsObj = JSON.parse(presets);
+  const selectedPresets = presetsObj["presets"][presetId];
 
   //set calendars
   $("#cal-select option:selected").prop("selected", false);
@@ -400,8 +405,8 @@ function applyPresets(presets){//Insert preset report settings into settings pag
   }
 
   //Set Attribute check boxes
-  var attributeIds = selectedPresets["attributeIds"];
-  for(var i=0;i<attributeIds.length;i++){
+  const attributeIds = selectedPresets["attributeIds"];
+  for(let i=0;i<attributeIds.length;i++){
     document.getElementById(attributeIds[i]).checked = "Checked";
   }
   document.getElementById("deletePreset").style.display = "inline";
