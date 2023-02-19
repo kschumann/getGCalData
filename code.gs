@@ -4,7 +4,7 @@ function  getUserData(){
     const calendars = CalendarApp.getAllCalendars();
     const numbCalendars = calendars.length;
     var calendarList = [];
-    for(var i=0;i<numbCalendars;i++){
+    for(let i=0;i<numbCalendars;i++){
       calendarList.push([calendars[i].getId(),calendars[i].getName()])
     }  
     return [presets,calendarList];
@@ -20,7 +20,7 @@ function getCalData(calIds,start,end,keyWordInput,selectedColumns,type){
     const sheetId = spreadsheet.getId();
     const scriptStart = new Date();
 
-    var calAttr = [
+    const calAttr = [
       ["calName","Calendar Name",250],
       ["eventName","Event Name",300],
       ["eventStart","Event Start",100],
@@ -41,13 +41,13 @@ function getCalData(calIds,start,end,keyWordInput,selectedColumns,type){
     
     /**Create single array of column IDs**/
     var calAttrList = [];
-    for(var i=0;i<calAttr.length;i++){
+    for(let i=0;i<calAttr.length;i++){
       calAttrList.push(calAttr[i][0]);
     }
 
   /**Create an array of indices that should be used */
     var selectedIndices = [];
-    for(var i=0;i<selectedColumns.length;i++){
+    for(let i=0;i<selectedColumns.length;i++){
       selectedIndices.push(calAttrList.indexOf(selectedColumns[i]));
     }  
   //console.log(selectedIndices);  
@@ -57,8 +57,8 @@ function getCalData(calIds,start,end,keyWordInput,selectedColumns,type){
     var noEventsList = [];
    // console.log("Calendars running for type: " + type);
   /**Populate calData array **/
-    for(var m=0;m<calIds.length;m++){//iterate through calendars
-      var calendar = CalendarApp.getCalendarById(calIds[m]);
+    for(let m=0;m<calIds.length;m++){//iterate through calendars
+      let calendar = CalendarApp.getCalendarById(calIds[m]);
       var calendarTimezone = calendar.getTimeZone(); //need to get events in Calendar's timezone
       //var calendarLocale = calendar.getTimeZone().toLocaleLowerCase(); //Not sure why calendar locale would be needed
       var newDate = new Date();
@@ -67,17 +67,17 @@ function getCalData(calIds,start,end,keyWordInput,selectedColumns,type){
 
       /**This seems to be working now using adjusted getTimeZoneOffset, but keeping fallback in just in case.**/
       if(isNaN(timezoneOffset)){
-        var start = new Date(start); 
-        var end = new Date(end+24*60*60*1000); 
+        start = new Date(start); 
+        end = new Date(end+24*60*60*1000); 
         console.warn(calendarTimezone + ": Timezone Offset Not Calculated")      
       } else{
-        var start = new Date(start+timezoneOffset); 
-        var end = new Date(end+24*60*60*1000+timezoneOffset);
+        start = new Date(start+timezoneOffset); 
+        end = new Date(end+24*60*60*1000+timezoneOffset);
       }
     console.log(sheetId + " -- Extrated started!  Calendars: " + calIds + "; Start Date: " + start + "; End Date: " + end + "; selectedColumns:" + selectedColumns + "; keyword: " + keyWordInput + "; Report Type: " + type);      
       //var end = Utilities.formatDate(new Date(end+24*60*60*1000), calendarTimezone, "YYYY-MM-dd hh:mm:ss a");     //End date time should be midnight of the selected date, so add 24 hours
-      var calName = calendar.getName();
-      var events = calendar.getEvents(start,end);  
+      let calName = calendar.getName();
+      let events = calendar.getEvents(start,end);  
 
       if(events.length == 0){//if no events are returned for the calendar, skip parsing, but keep track of calendar.
         noEventsList.push(calName);
@@ -86,38 +86,38 @@ function getCalData(calIds,start,end,keyWordInput,selectedColumns,type){
       } else {
     /**Create Array Data**/
       if(type == "participant"){//Iterate at the participant level
-        for(var i=0;i<events.length;i++){//for each event in calendar
-          var eventStartUnformatted = events[i].getStartTime();
-          var eventStart = Utilities.formatDate(eventStartUnformatted, calendarTimezone, "YYYY-MM-dd hh:mm:ss a");
-          var eventEndUnformatted = events[i].getEndTime();
-          var eventEnd = Utilities.formatDate(eventEndUnformatted, calendarTimezone, "YYYY-MM-dd hh:mm:ss a");        
-          var hoursDuration = (eventEndUnformatted-eventStartUnformatted)/(1000*60*60);//time in hours
-          var eventName = events[i].getTitle();
-          var location = events[i].getLocation();
-          var eventColor = convertColorCode(events[i].getColor());
-          var description = events[i].getDescription();
-          var numbParticipants = 0;
+        for(let i=0;i<events.length;i++){//for each event in calendar
+          let eventStartUnformatted = events[i].getStartTime();
+          let eventStart = Utilities.formatDate(eventStartUnformatted, calendarTimezone, "YYYY-MM-dd hh:mm:ss a");
+          let eventEndUnformatted = events[i].getEndTime();
+          let eventEnd = Utilities.formatDate(eventEndUnformatted, calendarTimezone, "YYYY-MM-dd hh:mm:ss a");        
+          let hoursDuration = (eventEndUnformatted-eventStartUnformatted)/(1000*60*60);//time in hours
+          let eventName = events[i].getTitle();
+          let location = events[i].getLocation();
+          let eventColor = convertColorCode(events[i].getColor());
+          let description = events[i].getDescription();
+          let numbParticipants = 0;
           // var isAllDayEvent = events[i].isAllDayEvent();
           // var isOwnedByMe = events[i].isOwnedByMe();
-          var isRecurringEvent = events[i].isRecurringEvent();
-          var dateCreated = events[i].getDateCreated();
-          var lastUpdated =  events[i].getLastUpdated();        
-          var visibility = events[i].getVisibility();
+          let isRecurringEvent = events[i].isRecurringEvent();
+          let dateCreated = events[i].getDateCreated();
+          let lastUpdated =  events[i].getLastUpdated();        
+          let visibility = events[i].getVisibility();
           // var tags = events[i].getAllTagKeys();
           // var status = events[i].getMyStatus();      
-          var participants = events[i].getGuestList(true);
-          var eventMembers = []; //keep track of team members already counted for this event   
-          var owners = events[i].getCreators();
-          var owner = owners;
+          let participants = events[i].getGuestList(true);
+          let eventMembers = []; //keep track of team members already counted for this event   
+          let owners = events[i].getCreators();
+          let owner = owners;
           var guestEmail = "";
           if(eventName.includes(keyWordInput)){//only add participants if event title includes key word
-            for(var j=0;j<participants.length;j++){//count the number of team members in the event
-              var guestEmail = participants[j].getEmail();        
+            for(let j=0;j<participants.length;j++){//count the number of team members in the event
+              guestEmail = participants[j].getEmail();        
               if(eventMembers.indexOf(guestEmail) == -1){//only count if they have not yet been counted
-                var outputArray = [calName,eventName,eventStart,eventEnd,location,eventColor,owner,guestEmail,description,hoursDuration,dateCreated,lastUpdated,visibility,numbParticipants,isRecurringEvent,calendarTimezone];          
+                let outputArray = [calName,eventName,eventStart,eventEnd,location,eventColor,owner,guestEmail,description,hoursDuration,dateCreated,lastUpdated,visibility,numbParticipants,isRecurringEvent,calendarTimezone];          
                 numbParticipants = numbParticipants+1;
                 var rowData = [];
-                for(var j=0;j<selectedIndices.length;j++){
+                for(let j=0;j<selectedIndices.length;j++){
                   rowData.push(outputArray[selectedIndices[j]]);
                 }  
                 calData.push(rowData);
@@ -127,43 +127,43 @@ function getCalData(calIds,start,end,keyWordInput,selectedColumns,type){
           }
         }
       } else if(type == "event"){//Iterate at the event level 
-          for(var i=0;i<events.length;i++){
-            var eventStartUnformatted = events[i].getStartTime();
-            var eventStart = Utilities.formatDate(eventStartUnformatted, calendarTimezone, "YYYY-MM-dd hh:mm:ss a");
-            var eventEndUnformatted = events[i].getEndTime();
-            var eventEnd = Utilities.formatDate(eventEndUnformatted, calendarTimezone, "YYYY-MM-dd hh:mm:ss a");        
-            var hoursDuration = (eventEndUnformatted-eventStartUnformatted)/(1000*60*60);//time in hours
-            var eventName = events[i].getTitle();
-            var location = events[i].getLocation();
-            var eventColor = convertColorCode(events[i].getColor());       
-            var description = events[i].getDescription();
-            var numbParticipants = 0;  
+          for(let i=0;i<events.length;i++){
+            let eventStartUnformatted = events[i].getStartTime();
+            let eventStart = Utilities.formatDate(eventStartUnformatted, calendarTimezone, "YYYY-MM-dd hh:mm:ss a");
+            let eventEndUnformatted = events[i].getEndTime();
+            let eventEnd = Utilities.formatDate(eventEndUnformatted, calendarTimezone, "YYYY-MM-dd hh:mm:ss a");        
+            let hoursDuration = (eventEndUnformatted-eventStartUnformatted)/(1000*60*60);//time in hours
+            let eventName = events[i].getTitle();
+            let location = events[i].getLocation();
+            let eventColor = convertColorCode(events[i].getColor());       
+            let description = events[i].getDescription();
+            let numbParticipants = 0;  
           // var isAllDayEvent = events[i].isAllDayEvent();
           // var isOwnedByMe = events[i].isOwnedByMe();
-            var isRecurringEvent = events[i].isRecurringEvent();
-            var dateCreated = events[i].getDateCreated();
-            var lastUpdated =  events[i].getLastUpdated();        
-            var visibility = events[i].getVisibility();
+            let isRecurringEvent = events[i].isRecurringEvent();
+            let dateCreated = events[i].getDateCreated();
+            let lastUpdated =  events[i].getLastUpdated();        
+            let visibility = events[i].getVisibility();
 
           // var status = events[i].getMyStatus();      
             
-            var participants = events[i].getGuestList(true);
-            var eventMembers = []; //keep track of team members already counted for this event   
-            var owners = events[i].getCreators();
-            var owner = owners;
+            let participants = events[i].getGuestList(true);
+            let eventMembers = []; //keep track of team members already counted for this event   
+            let owners = events[i].getCreators();
+            let owner = owners;
             var guestEmails = ""; //using plural emails here since we will be packing all emails into one event row
             if(eventName.includes(keyWordInput)){//only push event if event title includes key word
-              for(var j=0;j<participants.length;j++){//count the number of team members in the event
-                var guestEmail = participants[j].getEmail();        
+              for(let j=0;j<participants.length;j++){//count the number of team members in the event
+                let guestEmail = participants[j].getEmail();        
                 if(eventMembers.indexOf(guestEmail) == -1){//only count if they have not yet been counted
                 guestEmails += ", " + guestEmail; //Add guest email to the emails string
                   numbParticipants = numbParticipants+1;
                   eventMembers.push(guestEmail)
                 }
               }
-              var outputArray = [calName,eventName,eventStart,eventEnd,location,eventColor,owner,guestEmails.substring(2),description,hoursDuration,dateCreated,lastUpdated,visibility,numbParticipants,isRecurringEvent,calendarTimezone];  
+              let outputArray = [calName,eventName,eventStart,eventEnd,location,eventColor,owner,guestEmails.substring(2),description,hoursDuration,dateCreated,lastUpdated,visibility,numbParticipants,isRecurringEvent,calendarTimezone];  
                   var rowData = [];
-                  for(var j=0;j<selectedIndices.length;j++){
+                  for(let j=0;j<selectedIndices.length;j++){
                     rowData.push(outputArray[selectedIndices[j]]);
                   }  
                   calData.push(rowData);           
@@ -202,7 +202,7 @@ function getCalData(calIds,start,end,keyWordInput,selectedColumns,type){
     
   /**Add Headers to Sheets and Format **/
     var selectedHeaders = [[]];
-    for (var i=0;i<selectedIndices.length;i++){
+    for (let i=0;i<selectedIndices.length;i++){
       selectedHeaders[0].push(calAttr[selectedIndices[i]][1]);
       calDataSheet.setColumnWidth(i+1,calAttr[selectedIndices[i]][2]);                             
     }
@@ -213,8 +213,8 @@ function getCalData(calIds,start,end,keyWordInput,selectedColumns,type){
     calDataSheet.getRange(2,1,calData.length,selectedIndices.length).setNumberFormat("General");
     calDataSheet.getRange(2,1,calData.length,selectedIndices.length).setValues(calData);  
     calDataSheet.activate();
-    var scriptEnd = new Date();
-    var scriptTime = scriptEnd-scriptStart;
+    const scriptEnd = new Date();
+    const scriptTime = scriptEnd-scriptStart;
     console.log("Extract Completed! Number of Items: " + calData.length + "; Script Runtime: " + scriptTime + "; Time Zone: " + calendarTimezone + " (" + timezoneOffset + ")");
     return null;
   } catch(e){
@@ -317,3 +317,5 @@ function getPresets(){
   //console.log(presets);
   return presets;
 }
+
+
