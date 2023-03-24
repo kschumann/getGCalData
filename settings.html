@@ -245,9 +245,13 @@ function generateColumnSelectors(type){
     const attributeIds = $("input:checkbox[name=columns]:checked").map(function(){return $(this).val()}).get();
     const currPresetsObj = JSON.parse(currPresets);
     var presetNames=[];
-      for(let i=0;i<currPresetsObj["presets"].length;i++){
-        presetNames.push(currPresetsObj["presets"][i]["name"]);
+    if(currPresetsObj){
+      if(currPresetsObj["presets"]){
+        for(let i=0;i<currPresetsObj["presets"].length;i++){
+          presetNames.push(currPresetsObj["presets"][i]["name"]);
+        }
       }
+    }
     const errorMessage = validate(beginDate,endDate,selectedCalendars,attributeIds);
     var message = "";
     if(errorMessage || name.length == 0 || presetNames.indexOf(name)>=0){
@@ -260,22 +264,26 @@ function generateColumnSelectors(type){
       if(presetNames.indexOf(name)>=0){
       message += "<br/> A preset named '" + name + "' already exists."
       }
+      google.script.run.logError(message);
       showValidation(message); 
+
     } else {
       //add it to the current list of presets and save
-      if(currPresets){//if there are already presets saved
-        //construct object
-        var newPresetObj = {
-        "name":name,
-        "selectedCalendars":selectedCalendars,
-        "beginDate":beginDate,
-        "endDate":endDate,
-        "keyWordInput":keyWordInput,
-        "eventType":eventType,
-        "attributeIds":attributeIds
-        }      
-        currPresetsObj["presets"].push(newPresetObj);
-        var presets = JSON.stringify(currPresetsObj);
+     if(currPresetsObj){
+        if(currPresetsObj["presets"]){//if there are already presets saved
+          //construct object
+          var newPresetObj = {
+          "name":name,
+          "selectedCalendars":selectedCalendars,
+          "beginDate":beginDate,
+          "endDate":endDate,
+          "keyWordInput":keyWordInput,
+          "eventType":eventType,
+          "attributeIds":attributeIds
+          }      
+          currPresetsObj["presets"].push(newPresetObj);
+          var presets = JSON.stringify(currPresetsObj);
+        }
       } else{
         var newPresetObj = {"presets":[{
         "name":name,
@@ -314,8 +322,11 @@ function generateColumnSelectors(type){
       var presets = JSON.parse(data[0]);
       var presetsList = presets["presets"];
       var presetOptions = "";
-      for(let j=0;j<presetsList.length;j++){
-        presetOptions += "<option value='" + j +"' >" + presetsList[j]["name"] + "</option>";
+      if(presetsList){
+          for(let j=0;j<presetsList.length;j++){
+            presetOptions += "<option value='" + j +"' >" + presetsList[j]["name"] + "</option>";
+
+          }
         }
       }
       const calendarList = data[1];
