@@ -313,9 +313,16 @@ function updatePresets(presets){
 }
 
 function getPresets(){
-  const presets = PropertiesService.getUserProperties().getProperty("presets");
-  //console.log(presets);
+  try{
+  let presets = PropertiesService.getUserProperties().getProperty("presets");
+  console.log("Presets Retrieved!");
   return presets;
+  } catch(e){
+    console.error("Presets not Retrieved. Error: " + e);
+  }
 }
 
+function logError(message){
+     console.error("Presets not Retrieved. Error: " + message);
+}
 
