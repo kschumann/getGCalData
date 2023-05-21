@@ -67,18 +67,18 @@ function getCalData(calIds,start,end,keyWordInput,selectedColumns,type){
 
       /**This seems to be working now using adjusted getTimeZoneOffset, but keeping fallback in just in case.**/
       if(isNaN(timezoneOffset)){
-        start = new Date(start); 
-        end = new Date(end+24*60*60*1000); 
+        var newStart = new Date(start); 
+        var newEnd = new Date(end+24*60*60*1000); 
         console.warn(calendarTimezone + ": Timezone Offset Not Calculated")      
       } else{
-        start = new Date(start+timezoneOffset); 
-        end = new Date(end+24*60*60*1000+timezoneOffset);
+        var newStart = new Date(start+timezoneOffset); 
+        var newEnd = new Date(end+24*60*60*1000+timezoneOffset);
       }
-    console.log(sheetId + " -- Extrated started!  Calendars: " + calIds + "; Start Date: " + start + "; End Date: " + end + "; selectedColumns:" + selectedColumns + "; keyword: " + keyWordInput + "; Report Type: " + type);      
+    console.log(sheetId + " -- Extract started!  Calendars: " + calIds[m] + "; Start Date: " + newStart + "; End Date: " + newEnd + "; selectedColumns:" + selectedColumns + "; keyword: " + keyWordInput + "; Report Type: " + type + "; CalTimezone: " + calendarTimezone + "; timezoneOffset: " + timezoneOffset);      
       //var end = Utilities.formatDate(new Date(end+24*60*60*1000), calendarTimezone, "YYYY-MM-dd hh:mm:ss a");     //End date time should be midnight of the selected date, so add 24 hours
       let calName = calendar.getName();
-      let events = calendar.getEvents(start,end);  
-
+      let events = calendar.getEvents(newStart,newEnd);  
+      console.log(sheetId + "-" + calIds[m] + ": " + events.length + " retrieved.");
       if(events.length == 0){//if no events are returned for the calendar, skip parsing, but keep track of calendar.
         noEventsList.push(calName);
        // console.log("No events were returned for the calendar [" + calName + "] over the date range specified. Please try again.");
@@ -126,6 +126,7 @@ function getCalData(calIds,start,end,keyWordInput,selectedColumns,type){
             }
           }
         }
+        console.log(sheetId + "-" + calIds[m] + ": " + calData.length + " Total pushed into calData.");
       } else if(type == "event"){//Iterate at the event level 
           for(let i=0;i<events.length;i++){
             let eventStartUnformatted = events[i].getStartTime();
@@ -170,6 +171,8 @@ function getCalData(calIds,start,end,keyWordInput,selectedColumns,type){
               // console.log("EventTitle: " + eventName + " ; EventTeamMembers: " + eventMembers)
             }
           }
+        console.log(sheetId + "-" + calIds[m] + ": " + calData.length + " pushed into calData.");
+      
         }
       }
     }
@@ -215,7 +218,7 @@ function getCalData(calIds,start,end,keyWordInput,selectedColumns,type){
     calDataSheet.activate();
     const scriptEnd = new Date();
     const scriptTime = scriptEnd-scriptStart;
-    console.log("Extract Completed! Number of Items: " + calData.length + "; Script Runtime: " + scriptTime + "; Time Zone: " + calendarTimezone + " (" + timezoneOffset + ")");
+    console.log("Extract Completed for " + sheetId + "! Number of Items: " + calData.length + "; Script Runtime: " + scriptTime);
     return null;
   } catch(e){
     console.log("Unhandled Exception for getCalData: " + e);
@@ -325,4 +328,3 @@ function getPresets(){
 function logError(message){
      console.error("Presets not Retrieved. Error: " + message);
 }
-
