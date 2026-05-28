@@ -63,7 +63,7 @@ function getCalData(calIds,start,end,keyWordInput,selectedColumns,type){
       //var calendarLocale = calendar.getTimeZone().toLocaleLowerCase(); //Not sure why calendar locale would be needed
       var newDate = new Date();
       var timezoneOffset = getTimeZoneOffset(newDate, calendarTimezone);  
-      //var start = Utilities.formatDate(new Date(start), calendarTimezone, "YYYY-MM-dd hh:mm:ss a");
+      //var start = Utilities.formatDate(new Date(start), calendarTimezone, "yyyy-MM-dd hh:mm:ss a");
 
       /**This seems to be working now using adjusted getTimeZoneOffset, but keeping fallback in just in case.**/
       if(isNaN(timezoneOffset)){
@@ -75,7 +75,7 @@ function getCalData(calIds,start,end,keyWordInput,selectedColumns,type){
         var newEnd = new Date(end+24*60*60*1000+timezoneOffset);
       }
     console.log(sheetId + " -- Extract started!  Calendars: " + calIds[m] + "; Start Date: " + newStart + "; End Date: " + newEnd + "; selectedColumns:" + selectedColumns + "; keyword: " + keyWordInput + "; Report Type: " + type + "; CalTimezone: " + calendarTimezone + "; timezoneOffset: " + timezoneOffset);      
-      //var end = Utilities.formatDate(new Date(end+24*60*60*1000), calendarTimezone, "YYYY-MM-dd hh:mm:ss a");     //End date time should be midnight of the selected date, so add 24 hours
+      //var end = Utilities.formatDate(new Date(end+24*60*60*1000), calendarTimezone, "yyyy-MM-dd hh:mm:ss a");     //End date time should be midnight of the selected date, so add 24 hours
       let calName = calendar.getName();
       let events = calendar.getEvents(newStart,newEnd);  
       console.log(sheetId + "-" + calIds[m] + ": " + events.length + " retrieved.");
@@ -88,9 +88,9 @@ function getCalData(calIds,start,end,keyWordInput,selectedColumns,type){
       if(type == "participant"){//Iterate at the participant level
         for(let i=0;i<events.length;i++){//for each event in calendar
           let eventStartUnformatted = events[i].getStartTime();
-          let eventStart = Utilities.formatDate(eventStartUnformatted, calendarTimezone, "YYYY-MM-dd hh:mm:ss a");
+          let eventStart = Utilities.formatDate(eventStartUnformatted, calendarTimezone, "yyyy-MM-dd hh:mm:ss a");
           let eventEndUnformatted = events[i].getEndTime();
-          let eventEnd = Utilities.formatDate(eventEndUnformatted, calendarTimezone, "YYYY-MM-dd hh:mm:ss a");        
+          let eventEnd = Utilities.formatDate(eventEndUnformatted, calendarTimezone, "yyyy-MM-dd hh:mm:ss a");        
           let hoursDuration = (eventEndUnformatted-eventStartUnformatted)/(1000*60*60);//time in hours
           let eventName = events[i].getTitle();
           let location = events[i].getLocation();
@@ -130,9 +130,9 @@ function getCalData(calIds,start,end,keyWordInput,selectedColumns,type){
       } else if(type == "event"){//Iterate at the event level 
           for(let i=0;i<events.length;i++){
             let eventStartUnformatted = events[i].getStartTime();
-            let eventStart = Utilities.formatDate(eventStartUnformatted, calendarTimezone, "YYYY-MM-dd hh:mm:ss a");
+            let eventStart = Utilities.formatDate(eventStartUnformatted, calendarTimezone, "yyyy-MM-dd hh:mm:ss a");
             let eventEndUnformatted = events[i].getEndTime();
-            let eventEnd = Utilities.formatDate(eventEndUnformatted, calendarTimezone, "YYYY-MM-dd hh:mm:ss a");        
+            let eventEnd = Utilities.formatDate(eventEndUnformatted, calendarTimezone, "yyyy-MM-dd hh:mm:ss a");        
             let hoursDuration = (eventEndUnformatted-eventStartUnformatted)/(1000*60*60);//time in hours
             let eventName = events[i].getTitle();
             let location = events[i].getLocation();
